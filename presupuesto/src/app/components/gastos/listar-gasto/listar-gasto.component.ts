@@ -1,15 +1,43 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Subscription } from 'rxjs';
+import { PresupuestoService } from './../../../service/presupuesto.service';
 
 @Component({
   selector: 'app-listar-gasto',
   templateUrl: './listar-gasto.component.html',
   styleUrls: ['./listar-gasto.component.css']
 })
-export class ListarGastoComponent implements OnInit {
-
-  constructor() { }
+export class ListarGastoComponent implements OnInit, OnDestroy {
+  subscription: Subscription;
+  presupuesto: number;
+  restante: number;
+  listGastos: any[]=[];
+  constructor(private _presupuestoServices: PresupuestoService) {
+    this.presupuesto=0;
+    this.restante=0;
+    this.subscription = this._presupuestoServices.getGastos().subscribe(data =>{
+      this.restante = this.restante - data.cantidad,
+      this.listGastos.push(data);
+    })
+    
+   }
 
   ngOnInit(): void {
+    this.presupuesto = this._presupuestoServices.presupuesto;
+    this.restante = this._presupuestoServices.restante;
   }
 
+  ngOnDestroy():void{
+    this.subscription.unsubscribe();
+  }
+
+  aplicarColor(){
+    if(this.presupuesto / 4 > this.restante){
+      return 'alert alert-danger';
+    } else if(this.presupuesto / 2 > this.restante){
+      return 'alert alert-warning';
+      }else {
+        return 'alert alert-secondary';
+      }
+  }
 }
